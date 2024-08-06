@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+  <!-- Bootstrap 4 CDN -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <title>Hangman</title>
+</head>
+<body class="pc-mode">
+<div class="video-background">
+  <video autoplay loop muted>
+    <source src="videos/background.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+</div>
+<div class="container">
+  <h1 class="text-center custom-title">Hangman</h1>
+  <div class="float-right custom-errors">Erreurs : <span id='mistakes'>0</span> sur <span id='maxWrong'></span></div>
+  <div class="float-left custom-score">Score : <span id='score'>0</span></div>
+  <div class="text-center">
+    <img id='hangmanPic' class="hangman-img" src="./images/0.png" alt="">
+    <p class="custom-instructions">Devinez le mot :</p>
+    <p id="wordSpotlight" class="custom-word">Le mot à deviner apparaîtra ici</p>
+    <div id="keyboard"></div>
+    <button class="btn btn-info" onClick="reset()">Réinitialiser</button>
+    <p id="hint"></p>
+    <button class="btn btn-secondary" onClick="changeTheme('dark')">Thème Sombre</button>
+    <button class="btn btn-secondary" onClick="changeTheme('light')">Thème Clair</button>
+    <button id="playRainSound" class="btn btn-primary">Play Rain Sound</button>
+    <button id="toggleMode" class="btn btn-warning">Mode Téléphone</button>
+  </div> 
+</div>
+
+<audio id="winSound" src="./sounds/win.wav"></audio>
+<audio id="loseSound" src="./sounds/lose.wav"></audio>
+<audio id="correctSound" src="./sounds/correct.wav"></audio>
+<audio id="wrongSound" src="./sounds/wrong2.mp3"></audio>
+<audio id="rainSound" src="./sounds/rain.mp3" loop></audio>
+
+<script src='hangman.js'></script>
+<script>
+  const socket = new WebSocket('ws://localhost:8080');
+
+  socket.addEventListener('message', function (event) {
+    const message = event.data.toLowerCase();
+    if (message.length === 1 && message >= 'a' && message <= 'z') {
+      handleGuess(message);
+    }
+  });
+
+  socket.addEventListener('open', function () {
+    console.log('WebSocket is connected.');
+  });
+
+  socket.addEventListener('close', function () {
+    console.log('WebSocket is disconnected.');
+  });
+
+  document.getElementById('playRainSound').addEventListener('click', function() {
+    if (rainSound.paused) {
+      rainSound.play().catch((error) => {
+        console.error('Error playing rain sound:', error);
+      });
+      this.innerText = 'Pause Rain Sound';
+    } else {
+      rainSound.pause();
+      this.innerText = 'Play Rain Sound';
+    }
+  });
+
+  document.getElementById('toggleMode').addEventListener('click', function() {
+    const body = document.body;
+    if (body.classList.contains('pc-mode')) {
+      body.classList.remove('pc-mode');
+      body.classList.add('phone-mode');
+      this.innerText = 'Mode Ordinateur';
+    } else {
+      body.classList.remove('phone-mode');
+      body.classList.add('pc-mode');
+      this.innerText = 'Mode Téléphone';
+    }
+  });
+</script>
+</body>
+</html>
